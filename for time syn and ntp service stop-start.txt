@@ -1,0 +1,6 @@
+----for time in linux --
+timedatectl
+systemctl status ntp.service
+systemctl-timesyncd.service                    --->for time syn
+systemctl disable/stop  ntp.service
+systemctl enable/strat  ntp.service

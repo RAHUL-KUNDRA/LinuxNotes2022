@@ -1,0 +1,189 @@
+What is DHCP and how to configure DHCP server in Linux
+
+What Is DHCP?
+Anyone with a basic knowledge of computer networking knows that for two hosts to communicate on the same network using TCP/IP model, both hosts need to have a unique IP address. There are two ways on how any given host on your network can obtain an IP address.
+
+One way is to manually configure the network interface and assign an IP address by hand. The manual network configuration is called static configuration, which means that a host’s IP address does not change unless it’s changed manually by the user or system administrator. If your company network includes more than 1000 hosts, the job of configuring each host with a static IP address becomes tiresome and more importantly extremely inefficient.
+
+Another way to assign your network hosts with a proper IP address regardless of the actual network size is to assign an IP address to each host automatically. To perform an automatic host’s IP configuration is where DHCP ( Dynamic Host Configuration Protocol ) comes handy.
+
+The DHCP protocol lets a DHCP client, that is your network host to lease network configuration parameters such as an IP address. In fact, lease parameters are not limited to IP addresses only as they may also include the following configuration settings:
+
+    IP addresses and network masks
+    Domain Names servers ( DNS )
+    Default Gateways
+    WINS servers
+    Syslog hosts
+    Proxy servers
+    NTP servers
+    X Font servers
+
+Each network host configured to obtain an IP address dynamically via DHCP will upon boot send a DHCP request over the network ( by definition this is a broadcast of all 1’s ) to discover whether there is a DHCP server available somewhere on the network and consequently ask for a network configuration. DHCP client is then obligated to maintain communication with DHCP server and renew its IP address regularly as dictated by IP address’s lease time expiry. In case that DHCP client fails to renew its IP address ( disconnection, a host is turned off, etc. ) its IP address expires and DHCP server is free to lease this IP address to another DHCP client.
+
+DHCP server keeps a record of all leased IP addresses and stores them in a file called dhcpd.leases within /var/lib/dhcp directory ( location of this file may vary depending on Linux system in use ). Having such a file allows DHCP server to keep track of all IP address leases even after the reboot or power failure.
+
+Here are some advantages of having a DHCP server connected to network:
+
+    No IP address conflicts. DHCP can guarantee that all hosts on the network have a unique IP address. DHCP server keeps a record of all IP addresses assigned and cross references them with hosts’ MAC addresses.
+    Based on the MAC address, DHCP allows for a fixed parameter configuration for a specific host
+    Minimum local client network configuration, hence Increased efficiency
+
+To install DHCP on Ubuntu, Debian, and Linux Mint:
+
+$ sudo apt install isc-dhcp-server
+
+To install DHCP on CentOS, Fedora, AlmaLinux, and Red Hat:
+
+$ sudo dnf install dhcp
+
+
+Basic DHCP Configuration
+
+By default, DHCP server configuration does not include any subnets on which DHCP server should lease IP addresses. Therefore, depending on your Linux system you may get the following error message when you attempt to start DHCP with the default dhcpd.conf configuration file.
+
+Starting ISC DHCP server: dhcpdcheck syslog for diagnostics. ... failed!
+
+Examining log files such as /var/log/syslog reveals more details:
+
+No subnet declaration for eth0 (some IP address). 
+
+Your server may be connected to multiple network subnets. To start DHCP server, at least one subnet must be defined within the DHCP configuration file /etc/dhcp/dhcpd.conf.
+
+NOTE
+If your server has access to more than one subnet, DHCP requires all subnets to be defined even though there isn’t immediate intention to enable DHCP service on that subnet
+
+Below is the simplest example of DHCP configuration file:
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+
+This configuration file instructs DHCP server to listen for DHCP client requests on subnet 10.1.1.0 with netmask 255.255.255.0. Furthermore, it will assign IP addresses in range 10.1.1.3 – 10.1.1.254. It also defines an empty definition for subnet with network ID 192.168.0.0.
+
+Alter the above code with your subnet and insert it into /etc/dhcp/dhcpd.conf. When ready, restart your DHCP server with ( restart command may vary ) :
+
+$ sudo systemctl restart isc-dhcp-server
+
+DHCP default and max lease time
+
+At this point we can add a few additional settings to our DHCP configuration, namely the default and max lease time expiry.
+
+    default-lease-time is a value in seconds in which a leased IP address expiry will be set to if DHCP client does not ask for any other specific expiry lease time
+    max-lease-time is a value in seconds which defines a maximum expiry time for an IP address leased by DHCP server
+
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+
+Define DNS Server
+
+Another configuration parameter possible to be set by DHCP server to its client is a definition of DNS server. If you want your clients to use DNS server with an IP address 8.8.8.8 (Google DNS server) and 10.1.1.1 you can do it by including an option domain-name-servers to DHCP’s configuration file.
+
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option domain-name-servers 10.1.1.1, 8.8.8.8;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option routers 10.1.1.1;
+}
+
+Set default gateway
+
+DHCP also allows for a client’s gateway configuration. To set any client on the local network to use default gateway 10.1.1.1, add line option routers 10.1.1.1 into dhcpd.conf file as demonstrated below:
+
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option domain-name-servers 10.1.1.1, 8.8.8.8;
+  option routers 10.1.1.1;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option routers 10.1.1.1;
+}
+
+
+DHCP server configuration with default gateways added
+
+DHCP will now set DHCP client with gateway 10.1.1.1.
+Host specific configuration
+
+There may be a need to set static IP address to a particular host on the network such as printer, web server and etc. In this case it is possible to amend DHCP server configuration to lease a choosen IP address to a specific host defined by its MAC address.
+
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option domain-name-servers 10.1.1.1, 8.8.8.8;
+  option routers 10.1.1.1;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+
+host printer {
+  hardware ethernet 00:16:d3:b7:8f:86;
+  fixed-address 10.1.1.100;
+}
+
+host web-server {
+  hardware ethernet 00:17:a4:c2:44:22;
+  fixed-address 10.1.1.200;
+}
+
+The above DHCP configuration file will permanently assign the IP address 10.1.1.100 to a host “printer” with a MAC address 00:16:d3:b7:8f:86 and IP address 10.1.1.200 to host “web-server” with MAC address 00:17:a4:c2:44:22.
+Other Configuration Options
+Ubuntu client network settings to use DHCP
+
+To configure your client to use a DHCP on a network interface eth0 on Ubuntu or Debian Linux systems enter the following lines in your /etc/network/interfaces file:
+
+auto eth0
+iface eth0 inet dhcp
+
+Configuring DHCP relay agent
+
+If your DHCP server does not have an access to some particular subnet it does not mean that it cannot provide its services there. To make this work, a DHCP relay agent needs to be configured on a remote subnet which forwards all request to a specified DHCP server and distant subnet. First install DHCP relay agent:
+
+$ sudo apt install isc-dhcp-relay
+
+Then create a configuration file /etc/default/isc-dhcp-relay with two lines:
+
+SERVERS="192.168.5.5"
+INTERFACES="eth0"
+
+The above config file will instruct DHCP relay agent to listen on eth0 interface for a DHCP client requests and forward them to a DHCP server with an IP address 192.168.5.5.
+BOOTP Support
+
+ISC DHCP server is backward compatible with BOOTP. The following is a BOOTP client declaration to be defined in DHCP’s main configuration dhcpd.conf file:
+
+host bootp {
+              hardware ethernet 00:00:2e:55:12:09;
+              fixed-address 123.123.1.3;
+              filename "/path/to/tftpboot/bootp.boot";
+            }
+
+

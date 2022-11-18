@@ -1,0 +1,49 @@
+####Create LVM partitions using kickstart####
+
+Environment
+Red Hat Enterprise Linux 4
+Red Hat Enterprise Linux 5
+Red Hat Enterprise Linux 6
+The following options are required under 'Disk Partition Information' section in ks.cfg file,
+for creating the Logical Volume Manager (LVM) partitions using kickstart.
+
+
+syntax:-
+
+#Disk partitioning information
+part pv.<id> --ondisk=sdx
+volgroup <name> <partition>
+logvol <mountpoint> --vgname=<volume_group_name> --size=<size> --name=<name>
+
+
+Example:
+
+Two physical partitions should be created for Boot and Swap partitions 
+and the rest of the space should be allocated using LVM.
+
+Partition		Size			Name
+/boot			150MB			/boot
+
+swap			1GB			swap
+
+/			8GB			lv_root
+
+/var			4GB			lv_var
+
+/tmp			2GB			lv_tmp
+
+/spare			remaining space		lv_spare
+
+
+Solution:
+The following entries are required in ks.cfg file, as per the above requirements:
+
+#Disk partitioning information
+part /boot --fstype ext3 --ondisk=sdx --size=150
+part swap --ondisk=sdx --size=1024
+part pv.01 --size=1 --ondisk=sdx --grow
+volgroup vg_root pv.01
+logvol  /  --vgname=vg_root  --size=8192  --name=lv_root
+logvol  /var  --vgname=vg_root  --size=4096  --name=lv_var
+logvol  /tmp  --vgname=vg_root  --size=2048  --name=lv_tmp
+logvol  /spare  --vgname=vg_root  --size=1  --grow  --name=lv_spare

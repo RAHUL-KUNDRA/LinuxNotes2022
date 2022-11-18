@@ -1,0 +1,163 @@
+**** on server side ****
+
+1. First assign static ip to the server
+2. yum install telnet mailx postfix bind*
+3. hostnamectl set-hostname redhat8.server.com
+4. vim /etc/hosts
+
+**add this entry in the file **
+
+192.168.235.128		redhat8.server.com
+
+5. cp /etc/named.conf /etc/named.conf.bak
+6. vim /etc/named.conf
+
+**add these entries in the file **
+
+listen-on port 53 { 127.0.0.1; 192.168.235.0/24; };
+
+
+
+
+allow-query  { localhost; 192.168.235.0/24; };
+
+#Goto end of this file
+
+//forward zone
+zone "server.com" IN {
+	type master;
+	file "forward.server.com";
+	allow-update { none; };
+};
+//reverse zone
+zone "235.168.192.in-addr.arpa" IN {
+	type master;
+	file "reverse.server.com";
+	allow-update { none; };
+};
+
+6.1 cd /var/named
+
+7. cp named.localhost forward.server.com
+8. cp named.localhost reverse.server.com
+9. chgrp named /var/named/forward.server.com
+10. chgrp named /var/named/reverse.server.com
+11. vim /var/named/forward.server.com
+
+** type these entries in the file **
+
+$TTL 86400
+@       IN SOA  server.com.  root. (
+                                        20180205        ; serial
+                                        3600    ; refresh
+                                        1800    ; retry
+                                        60400   ; expire
+                                        86400 ) ; minimum
+@               IN NS   localhost
+localhost       IN A    127.0.0.1
+
+; Host Address
+server.com.     IN A    192.168.235.128
+redhat8         IN A    192.168.235.128
+rhel-8          IN A    192.168.235.129
+
+; Mail server
+server.com.     IN MX 10 192.168.235.128
+
+; CNAME
+mail            IN CNAME redhat8.server.com.
+
+12. vim /var/named/reverse.server.com
+
+** type these entries in the file **
+
+$TTL 86400
+@       IN SOA  server.com.  root.server.com. (
+                                        20180502        ; serial
+                                        1800    ; refresh
+                                        1500    ; retry
+                                        18500   ; expire
+                                        86400 ) ; minimum
+        IN NS   localhost.
+10      IN PTR  redhat8.server.com.
+10      IN PTR  mail.server.com.
+11      IN PTR  rhel-8.server.com.
+
+
+
+13. systemctl enable named --now
+
+13.1 firewall-cmd --permanent --add-service=dns
+13.2 firewall-cmd --permanent --add-port=53/tcp
+13.3 firewall-cmd --permanent --add-port=53/udp
+13.4 firewall-cmd --reload
+
+14. nslookup mail.server.com (for verifying dns server config)
+15. host -t mx server.com (for verifying mx record)
+16. cp /etc/postfix/main.cf /etc/postfix/main.cf.bak
+17. vim /etc/postfix/main.cf
+
+** add these lines in the file **
+
+myhostname = redhat8.server.com
+
+mydomain = server.com
+
+myorigin = $mydomain
+
+inet_interfaces = all
+
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
+        mail.$mydomain, www.$mydomain, ftp.$mydomain
+
+mynetworks = 192.168.235.0/24, 127.0.0.0/8
+
+relayhost = [redhat8.server.com]
+
+home_mailbox = Maildir/
+
+mail_spool_directory = /var/spool/mail
+
+18. save & exit
+19. systemctl enable postfix --now
+20. firewall-cmd --permanent --add-service=smtp
+21. firewall-cmd --reload
+
+
+
+****on client side ****
+
+1. yum install mailx postfix bind*
+
+1.1 hostnamectl set-hostname rhel-8.server.com
+
+2. set DNS server ip in your client system (GUI)
+
+3. nslookup rhel-8 (verifying dns server configuration at client)
+
+** if it shows this output then the verification has been done **
+
+server:	192.168.235.128
+address: 192.168.235.128#53
+
+name:	rhel-8.server.com
+address:  192.168.235.129
+
+4. host -t mx mail.server.com (verifying client is connected to mail server)
+5. cp /etc/postfix/main.cf /etc/postfix/main.cf.bak
+6. vim /etc/postfix/main.cf
+
+** add/modify these lines in the file **
+
+inet_interfaces = all
+
+mydestination = 
+
+my networks = 127.0.0.0/8
+
+relayhost = [redhat8.server.com]
+
+7. firewall-cmd --permanent --add-service=smtp
+8. firewall-cmd --reload
+9. systemctl enable postfix --now
+

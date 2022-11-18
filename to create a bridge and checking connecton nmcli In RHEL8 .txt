@@ -1,0 +1,89 @@
+Create a bridge interface:
+
+# nmcli connection add type bridge con-name bridge0 ifname bridge0
+This command creates a bridge named bridge0, enter:
+
+Display the network interfaces, and note the names of the interfaces you want to add to the bridge:
+
+# nmcli device status
+DEVICE  TYPE      STATE         CONNECTION
+enp7s0  ethernet  disconnected  --
+enp8s0  ethernet  disconnected  --
+bond0   bond      connected     bond0
+bond1   bond      connected     bond1
+...
+In this example:
+
+enp7s0 and enp8s0 are not configured. To use these devices as ports, add connection profiles in the next step.
+bond0 and bond1 have existing connection profiles. To use these devices as ports, modify their profiles in the next step.
+Assign the interfaces to the bridge.
+
+If the interfaces you want to assign to the bridge are not configured, create new connection profiles for them:
+
+# nmcli connection add type ethernet slave-type bridge con-name bridge0-port1 ifname enp7s0 master bridge0
+# nmcli connection add type ethernet slave-type bridge con-name bridge0-port2 ifname enp8s0 master bridge0
+These commands create profiles for enp7s0 and enp8s0, and add them to the bridge0 connection.
+
+If you want to assign an existing connection profile to the bridge, set the master parameter of these connections to bridge0:
+
+# nmcli connection modify bond0 master bridge0
+# nmcli connection modify bond1 master bridge0
+These commands assign the existing connection profiles named bond0 and bond1 to the bridge0 connection.
+
+Configure the IP settings of the bridge. Skip this step if you want to use this bridge as a ports of other devices.
+
+Configure the IPv4 settings. For example, to set a static IPv4 address, network mask, default gateway, DNS server, and DNS search domain of the bridge0 connection, enter:
+
+# nmcli connection modify bridge0 ipv4.addresses '192.0.2.1/24'
+# nmcli connection modify bridge0 ipv4.gateway '192.0.2.254'
+# nmcli connection modify bridge0 ipv4.dns '192.0.2.253'
+# nmcli connection modify bridge0 ipv4.dns-search 'example.com'
+# nmcli connection modify bridge0 ipv4.method manual
+Configure the IPv6 settings. For example, to set a static IPv6 address, network mask, default gateway, DNS server, and DNS search domain of the bridge0 connection, enter:
+
+# nmcli connection modify bridge0 ipv6.addresses '2001:db8:1::1/64'
+# nmcli connection modify bridge0 ipv6.gateway '2001:db8:1::fffe'
+# nmcli connection modify bridge0 ipv6.dns '2001:db8:1::fffd'
+# nmcli connection modify bridge0 ipv6.dns-search 'example.com'
+# nmcli connection modify bridge0 ipv6.method manual
+Optional: Configure further properties of the bridge. For example, to set the Spanning Tree Protocol (STP) priority of bridge0 to 16384, enter:
+
+# nmcli connection modify bridge0 bridge.priority '16384'
+By default, STP is enabled.
+
+Activate the connection:
+
+# nmcli connection up bridge0
+Verify that the ports are connected, and the CONNECTION column displays the port’s connection name:
+
+# nmcli device
+DEVICE   TYPE      STATE      CONNECTION
+...
+enp7s0   ethernet  connected  bridge0-port1
+enp8s0   ethernet  connected  bridge0-port2
+Red Hat Enterprise Linux activates controller and ports when the system boots. By activating any port connection, the controller is also activated. However, in this case, only one port connection is activated. By default, activating the controller does not automatically activate the ports. However, you can enable this behavior by setting:
+
+Enable the connection.autoconnect-slaves parameter of the bridge connection:
+
+# nmcli connection modify bridge0 connection.autoconnect-slaves 1
+Reactivate the bridge:
+
+# nmcli connection up bridge0
+Verification steps
+
+Use the ip utility to display the link status of Ethernet devices that are ports of a specific bridge:
+
+# ip link show master bridge0
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel master bridge0 state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:62:61:0e brd ff:ff:ff:ff:ff:ff
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel master bridge0 state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:9e:f1:ce brd ff:ff:ff:ff:ff:ff
+Use the bridge utility to display the status of Ethernet devices that are ports of any bridge device:
+
+# bridge link show
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master bridge0 state forwarding priority 32 cost 100
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master bridge0 state listening priority 32 cost 100
+5: enp9s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master bridge1 state forwarding priority 32 cost 100
+6: enp11s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master bridge1 state blocking priority 32 cost 100
+...
+To display the status for a specific Ethernet device, use the bridge link show dev ethernet_device_name command.

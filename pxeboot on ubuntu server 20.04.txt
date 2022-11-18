@@ -1,0 +1,100 @@
+#### first assign static ip on ethernet interface ####
+
+# vi /etc/sysconfig/network-scripts/ifcfg-eth0
+		
+			or
+
+# ifconfig eth0 172.16.25.125 netmask 255.255.255.224 broadcast 172.16.25.63
+
+# to assign default gateway on ethernet interface
+
+route add default gw 192.168.1.1 ens33
+
+# to check default gateway 
+
+netstat -r -n 
+
+    or
+
+ip route
+
+
+1. sudo apt update && sudo apt install -y dnsmasq
+
+2. sudo mv -v /etc/dnsmasq.conf /etc/dnsmasq.conf.backup
+
+3. sudo nano /etc/dnsmasq.conf
+
+Now, type in the following lines:
+
+interface=ens38
+bind-interfaces
+domain=linuxhint.local
+ 
+dhcp-range=ens38,192.168.50.100,192.168.50.240,255.255.255.0,8h
+dhcp-option=option:router,192.168.50.1
+dhcp-option=option:dns-server,192.168.50.1
+dhcp-option=option:dns-server,8.8.8.8
+ 
+enable-tftp
+tftp-root=/netboot/tftp
+dhcp-boot=pxelinux.0,linuxhint-s20,192.168.50.1
+pxe-prompt="Press F8 for PXE Network boot.", 2
+pxe-service=x86PC, "Install OS via PXE",pxelinux
+
+4. sudo mkdir -p /netboot/tftp
+
+5. sudo systemctl restart dnsmasq
+
+6. sudo systemctl status dnsmasq
+
+7. sudo apt install -y nfs-kernel-server
+
+8. sudo mkdir /netboot/nfs
+
+9. sudo nano /etc/exports
+
+10. /netboot/nfs  *(ro,sync,no_wdelay,insecure_locks,no_root_squash,insecure,no_subtree_check)
+
+11. sudo exportfs -a
+
+12. sudo apt install -y syslinux pxelinux
+
+13. sudo cp -v /usr/lib/PXELINUX/pxelinux.0 /netboot/tftp/
+
+14. sudo cp -v  /usr/lib/syslinux/modules/bios/{ldlinux.c32,libcom32.c32,libutil.c32,
+vesamenu.c32} /netboot/tftp
+
+15. sudo mkdir /netboot/tftp/pxelinux.cfg
+
+16. sudo touch /netboot/tftp/pxelinux.cfg/default
+
+17. wget http://releases.ubuntu.com/18.04/ubuntu-18.04.2-desktop-amd64.iso
+
+18. sudo mount -o loop ubuntu-18.04.2-desktop-amd64.iso /mnt
+
+19. sudo mkdir -v /netboot/{nfs,tftp}/ubuntu1804
+
+20. sudo cp -Rfv /mnt/* /netboot/nfs/ubuntu1804/
+
+21. sudo cp -v /netboot/nfs/ubuntu1804/casper/{vmlinuz,initrd} /netboot/tftp/ubuntu1804/
+
+22. sudo chmod -Rfv 777 /netboot
+
+23. Now, you can unmount the Ubuntu 18.04 LTS ISO image and delete it if you want.
+
+$ sudo umount /mnt
+$ rm ubuntu-18.04.2-desktop-amd64.iso
+
+24. sudo nano /netboot/tftp/pxelinux.cfg/default
+
+Now, add the following lines to the file.
+
+default vesamenu.c32
+ 
+ 
+label install1
+menu label ^Install Ubuntu 18.04 LTS Desktop
+menu default
+kernel ubuntu1804/vmlinuz
+append initrd=ubuntu1804/initrd boot=casper netboot=nfs nfsroot=192.168.50.1:/netboot/nfs/ubuntu1804/ splash toram ---

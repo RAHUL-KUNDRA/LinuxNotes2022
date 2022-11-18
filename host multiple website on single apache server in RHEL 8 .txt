@@ -1,0 +1,74 @@
+****on server side****
+
+1. first assign static ip to the server
+2. yum install httpd
+3. mkdir -p /public_html/techmentos.com/www
+4. mkdir -p /public_html/crazyvirus.com/www
+5. vim /public_html/techmentos.com/www/index.html
+
+	**add sample entry**
+	
+	Hey there this is techmentos.com website
+
+6. vim /public_html/crazyvirus.com/www/index.html
+
+	**add sample entry**
+	
+	Hey there this is crazyvirus.com website
+
+7. semanage fcontext -a -t httpd_sys_content_t /public_html
+8. restorecon -Rv /public_html
+	
+if it is not applied by default to all directory run this command
+	
+	**Command**
+	
+	chcon -R -t httpd_sys_content_t /public_html/techmentos.com
+	chcon -R -t httpd_sys_content_t /public_html/crazyvirus.com
+
+9. vim /etc/httpd/conf.d/techmentos-vhost.conf
+
+	**type this entry**
+
+<VirtualHost    *:80>
+ServerAdmin     admin-techmint@techmint.com
+ServerName      techmentos.com
+ServerAlias     www.techmentos.com
+DocumentRoot    /public_html/techmentos.com/www
+DirectoryIndex  index.html
+CustomLog       /var/log/httpd/techmentos.com combined
+</VirtualHost>
+<Directory /public_html/techmentos.com/www>
+require all granted
+</Directory>
+
+10. vim /etc/httpd/conf.d/crazyvirus-vhost.conf
+
+	**type this entry**
+
+<VirtualHost    *:80>
+ServerAdmin     webmaster@crazyvirus.com
+ServerName      crazyvirus.com
+ServerAlias     www.crazyvirus.com
+DocumentRoot    /public_html/crazyvirus.com/www
+DirectoryIndex  index.html
+CustomLog       /var/log/httpd/crazyvirus.com combined
+</VirtualHost>
+<Directory /public_html/crazyvirus.com/www>
+require all granted
+</Directory>
+
+11. firewall-cmd --permanent --add-service=http
+12. firewall-cmd --reload
+13. systemctl enable httpd --now
+14. systemctl status httpd
+
+
+also add entry in
+ vim /etc/hosts
+192.168.75.129  www.rahulkundra.com      ---->your ip and website name 
+192.168.75.129  www.nidhitomar    
+and also add entry if you dont have dns and you want your website ping using name 
+vim /etc/resolv.conf 
+192.168.75.129  www.rahulkundra.com      ---->your ip and website name 
+192.168.75.129  www.nidhitomar   

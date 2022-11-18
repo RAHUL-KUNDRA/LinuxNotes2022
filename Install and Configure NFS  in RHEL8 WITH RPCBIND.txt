@@ -1,0 +1,36 @@
+****NFS configuration on server side****
+
+1. Assign static ip to server
+2. yum install nfs-utils libnfsidmap
+3. systemctl enable rpcbind
+4. systemctl enable nfs-server
+5. systemctl start rpcbind
+6. systemctl start nfs-server
+7. systemctl start rpc-statd
+8. systemctl start nfs-idmapd
+9. mkdir /root/nfsfileshare
+10.chmod 777 /root/nfsfileshare
+11.vim /etc/exports
+12.type this entry in the file (/etc/exports)
+
+*entry*
+
+/root/nfsfileshare	192.168.1.0/24(rw,sync,no_root_squash)
+
+13.save & exit (:wq)
+14.exportfs -r
+15.exportfs -v
+16.firewall-cmd --permanent --zone=public --add-service=mountd
+17.firewall-cmd --permanent --zone=public --add-service=rpc-bind
+18.firewall-cmd --permanent --zone=public --add-service=nfs
+19.firewall-cmd --reload
+
+
+****Nfs mounting client side****
+
+1.yum install nfs-utils libnfsidmap -y
+2.systemctl enable rpcbind
+3.systemctl start rpcbind
+4.showmount -e 192.168.1.3
+5.mkdir /mnt/nfsremoteshare
+6.mount 192.168.1.3:/root/nfsfileshare /mnt/nfsremoteshare

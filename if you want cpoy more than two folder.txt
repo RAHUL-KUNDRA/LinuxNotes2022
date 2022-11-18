@@ -1,0 +1,2 @@
+force directory mode = 2777
+create mask =0777

@@ -1,0 +1,110 @@
+****DNS configuration****
+
+1.yum install -y bind*
+
+2.hostnamectl set-hostname redhat8
+
+3.nano /etc/hosts
+
+**type this entry in file (/etc/hosts)**
+
+192.168.156.131  redhat8.server.com
+
+4.vim /etc/named.conf
+
+**type these entries in file (/etc/named.conf)**
+
+listen-on port 53 { 127.0.0.1; 192.168.56.0/24; };
+
+
+
+
+allow-query  { localhost; 192.168.56.0/24; };
+
+#Goto end of this file
+
+//forward zone
+zone "server.com" IN {
+	type master;
+	file "forward.server.com";
+	allow-update { none; };
+};
+//reverse zone
+zone "56.168.192.in-addr.arpa" IN {
+	type master;
+	file "reverse.server.com";
+	allow-update { none; };
+};
+
+
+***then save & exit (:wq)***
+
+5. cd /var/named
+6. cp named.localhost forward.server.com
+7. cp named.localhost reverse.server.com
+8. chgrp named /var/named/forward.server.com
+9. chgrp named /var/named/reverse.server.com
+10.vim /var/named/forward.server.com
+
+**Types these entries in the file (/var/named/forward.server.com)**
+
+$TTL 86400
+@	IN SOA	redhat8.server.com.  root.server.com. (
+					20180205	; serial
+					3600	; refresh
+					1800	; retry
+					60400	; expire
+					86400 )	; minimum
+@	IN NS	redhat8.server.com.
+@	IN A	192.168.56.131
+redhat8 IN A 192.168.56.131
+
+#save & exit (:wq)
+
+11.vim /var/named/reverse.server.com
+
+**Types these entries in the file (/var/named/reverse.server.com)**
+
+$TTL 86400
+@	IN SOA	redhat8.server.com.  root.server.com. (
+					20180205	; serial
+					1800	; refresh
+					1500	; retry
+					18500	; expire
+					86400 )	; minimum
+@	IN NS	redhat8.server.com.
+@	IN PTR	redhat8.server.com.
+
+redhat8 IN A 192.168.56.131
+
+#save & exit (:wq)
+
+12.firewall-cmd --permanent --add-service=dns
+13.firewall-cmd --permanent --add-port=53/tcp
+14.firewall-cmd --permanent --add-port=53/udp
+15.firewall-cmd --reload
+16.systemctl start named-setup-rndc.service
+17.systemctl start named.service
+
+**Configuration done**
+
+
+***Commands for checking configuration of dns server***
+
+1. named-checkconf -z /etc/named.conf
+2. named-checkzone forward /var/named/forward.server.com
+3. named-checkzone reverse /var/named/reverse.server.com
+
+**For diagnosis of DNS**
+
+1.dig redhat8.server.com
+
+
+
+error 
+Failed to start Berkeley Internet Name Domain (DNS).
+
+systemctl status named-chroot.service -l
+systemctl enable named-chroot.service -l
+
+

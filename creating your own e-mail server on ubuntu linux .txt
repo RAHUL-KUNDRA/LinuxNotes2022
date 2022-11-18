@@ -1,0 +1,47 @@
+creating your own e-mail server on ubuntu linux 
+
+how to self host host 
+
+what is self hosting 
+
+linux your own server machine to run a service 
+
+some examples
+ 
+-> using postfix to host your own ema il server instead of using gamil 
+-> using Apache and wordpress to host own blog instead of using wordprees.com
+-> using OpenSIP to host your own voice and video call server instead of using skype /whatsapp /hangouts
+-> using jabber to host your own chat server instead of using hangouts /slack
+
+advantages of self-hosting 
+
+data is always in your control
+you can configure special features that suit your needs 
+you only pay for the cost of the server 
+
+
+what do you need 
+
+--> a server machine with at least 8GB RAM 16 is perferable 
+        ---> you can get a server on linode , Rackspace,amazon web services or google cloud compute
+--->  ubuntu linux 16.04 or later installed
+---> a domain name that you own
+---> knowledge of working on linux commandline 
+----> knowledge of SQL queries 
+
+course structure 
+
+how email works
+use MySQL to create email addresses
+install postfix to send and receive email  messages use
+use dns to make your email service as lists within folders
+install dovecot to view messages  as lists within folders
+test our setup mozila thunderbrid desktop email client 
+install RainLoop to access our email with a web browser a let gmail 
+using more DNS records to comply with security standards
+securing our email service with ssl 
+
+
+
+
+the foucs of this course was to one goal enable workig 

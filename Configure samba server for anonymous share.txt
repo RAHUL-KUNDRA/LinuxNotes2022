@@ -1,0 +1,46 @@
+**** on server side ****
+
+1. yum install samba*
+
+1.1 mkdir -p /srv/samba/Everyone
+1.2 chmod -R 777 /srv/samba/Everyone
+1.3 chown -R nobody:nobody /srv/samba/Everyone
+1.4 chcon -t samba_share_t /srv/samba/Everyone
+
+
+2. cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+3. vim /etc/samba/smb.conf
+
+	**types these entry in the file
+
+[global]
+	workgroup = WORKGROUP
+        server string = Samba Server %v
+        netbios name = rhel8
+        security = user
+        map to guest = bad user
+        dns proxy = no
+
+[Everyone]
+        comment = Anonymous File Server Share
+        path = /srv/samba/Everyone
+        browsable =yes
+        writable = yes
+        guest ok = yes
+        read only = no
+        force user = nobody
+
+4. firewall-cmd --permanent --add-service=samba
+5. firewall-cmd --reload
+6. systemctl enable smb --now
+7. systemctl enable nmb --now
+8. systemctl status smb
+9. systemctl status nmb
+
+** To check samba configuration **
+
+1. testparm
+
+
+to access share directory In window
+win+R   Enter  Ip Address of server you are trying to access  \\192.168.43.121

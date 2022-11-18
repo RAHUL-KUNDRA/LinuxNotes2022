@@ -1,0 +1,94 @@
+Install and Configure Samba in RHEL
+
+# dnf install samba samba-common samba-client 
+# mkdir -p /srv/tecmint/data
+# chmod -R 755 /srv/tecmint/data
+# chown -R  nobody:nobody /srv/tecmint/data
+# chcon -t samba_share_t /srv/tecmint/data
+# mkdir -p /srv/tecmint/data
+# chmod -R 755 /srv/tecmint/data
+# chown -R  nobody:nobody /srv/tecmint/data
+# chcon -t samba_share_t /srv/tecmint/data
+# mv /etc/samba/smb.conf /etc/samba/smb.conf.bak
+# vim /etc/samba/smb.conf
+
+[global]
+workgroup = WORKGROUP
+server string = Samba Server %v
+netbios name = rocky-8
+security = user
+map to guest = bad user
+dns proxy = no
+ntlm auth = true
+
+
+[Public]
+path =  /srv/tecmint/data
+browsable =yes
+writable = yes
+guest ok = yes
+read only = no
+
+# testparm
+# systemctl start smb
+# systemctl enable smb
+# systemctl start nmb
+# systemctl enable nmb
+# systemctl status smb
+# systemctl status nmb
+
+Accessing Samba Share from Windows
+Win+R Enter  enter the IP address of the samba server you want access
+
+For checking 
+
+# cd /srv/tecmint/data
+# touch file{1..3}.txt
+
+
+Secure Samba Share Directory in RHEL
+
+To secure our Samba share, we need to create a new samba user.
+# useradd smbuser
+# smbpasswd -a smbuser
+
+Next, create a new group and add the new samba user to this group.
+# sudo groupadd smb_group
+# sudo usermod -g smb_group smbuser
+
+Thereafter, create another secure samba share directory for accessing files securely by samba users.
+# mkdir -p /srv/tecmint/private
+# chmod -R 770 /srv/tecmint/private
+# chcon -t samba_share_t /srv/tecmint/private
+# chown -R root:smb_group /srv/tecmint/private
+
+Once again, access the Samba configuration file.
+# vi /etc/samba/smb.conf
+
+Add these lines to define to secure samba share.
+[Private]
+path = /srv/tecmint/private
+valid users = @smb_group
+guest ok = no
+writable = no
+browsable = yes
+
+:wq
+Save the changes and exit.
+
+Finally, restart all the samba daemons as shown.
+$ sudo systemctl restart smb
+$ sudo systemctl restart nmb
+ 
+#testperm 
+
+Accessing Samba Share from Windows
+Win+R Enter  enter the IP address of the samba server you want access
+but now you have to enter username and password  Ex smbuser sumlove12
+
+
+To access the samba share from a Linux machine, first, install the samba-client package and try to connect.
+
+# dnf install samba-client 
+# smbclient ‘\2.168.43.121\private’ -U smbuser
+

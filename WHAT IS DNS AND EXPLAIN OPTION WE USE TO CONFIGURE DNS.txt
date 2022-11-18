@@ -1,0 +1,62 @@
+****DNS server**** 
+
+It stands for Domain name system. It is used for translating/resolving name into ip address
+& vice versa.This service works on port no. 53
+
+Developed in the 80’s by students at Berkeley University, BIND (Berkeley Internet Name Domain) is an open source DNS server that provides DNS services on Linux distributions.
+
+**There are two types of zones**
+
+1. Forward lookup zone = resolve name to ip address
+
+2. Reverse lookup zone = resolve ip address to name
+
+**There are two types of sub zones**
+
+1. Primary zone
+
+2. secondary zone
+
+**DNS records**
+
+1.SOA (set/start of authority) = It's a first record of any zone file
+
+2.NS (Name server)             = It represents DNS server name
+
+3.A  (host)		       = It represents resolve name into ip
+
+4.PTR (pointer record)	       = It represent resolve ip address into name
+
+5.MX (mail exchange)	       = It represents mailing server
+
+6.Cname (canonical name)       = It represents second name of name server
+
+
+**DNS parameters**
+
+TTL:	 	This is short for Time-To-Live. TTL is the duration of time (or hops) that a packet exists in a network before finally being discarded by the router.
+
+IN:	 	This implies the Internet.
+
+SOA:	 	This is short for the Start of Authority. Basically, it defines the authoritative name server, 
+		in this case, dns-primary.linuxtechi.local and contact information – admin.linuxtechi.local
+
+NS:		This is short for Name Server.
+
+A: 		This is an A record. It points to a domain/subdomain name to the IP Address
+
+Serial: 	This is the attribute used by the DNS server to ensure that contents of a specific zone file are updated.
+
+Refresh:	Defines the number of times that a slave DNS server should transfer a zone from the master.
+
+Retry: 		Defines the number of times that a slave should retry a non-responsive zone transfer.
+
+Expire: 	Specifies the duration a slave server should wait before responding to a client query when the Master is unavailable.
+
+Minimum: 	This is responsible for setting the minimum TTL for a zone.
+
+MX: 		This is the Mail exchanger record. It specifies the mail server receiving and sending emails
+
+CNAME: 		This is the Canonical Name. It maps an alias domain name to another domain name.
+
+PTR: 		Short for Pointer, this attributes resolves an IP address to a domain name, opposite to a domain name.

@@ -1,0 +1,10 @@
+****on server side****
+
+1. Assign static ip to the server
+2. yum install httpd*
+3. copy the website content into /var/www/html
+4. firewall-cmd --permanent --add-service=http
+5. firewall-cmd --reload
+6. systemctl enable httpd --now
+7. systemctl status httpd
+8. for ip address finding ifconfig |grep inet

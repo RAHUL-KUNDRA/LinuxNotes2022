@@ -1,0 +1,53 @@
+modinfo bonding
+
+cd /etc/sysconfig/network-scripts/
+vim ifcfg-bond0
+
+**type these entry**
+
+DEVICE=bond0
+TYPE=bond
+NAME=bond0
+BONDING_MASTER=yes
+BOOTPROTO=none
+ONBOOT=yes
+IPADDR=192.168.74.150
+NETMASK=255.255.255.0
+GATEWAY=192.168.74.1
+BONDING_OPTS="mode=5 miimon=100"
+
+save & exit
+
+vim ifcfg-ens160
+
+**type these entries**
+
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=ens160
+ONBOOT=yes
+HWADDR=00:0c:29:df:8b:f9
+MASTER=bond0
+SLAVE=yes
+
+save & exit
+
+vim ifcfg-ens224
+
+**type these entries**
+
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=ens224
+ONBOOT=yes
+HWADDR=00:0c:29:df:8b:03
+MASTER=bond0
+SLAVE=yes
+
+save & exit
+
+
+systemctl restart NetworkManager
+
+ifconfig
+

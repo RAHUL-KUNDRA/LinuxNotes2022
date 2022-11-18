@@ -1,0 +1,5 @@
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using fe80::20c:29ff:fe2a:138a. Set the 'ServerName' directive globally to suppress this message
+Syntax OK
+
+
+https://www.cyberithub.com/ah00558-httpd-could-not-reliably-determine-the-servers-fully-qualified-domain-name/

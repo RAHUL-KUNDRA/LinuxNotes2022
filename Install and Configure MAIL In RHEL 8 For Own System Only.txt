@@ -1,0 +1,75 @@
+**** on server side ****
+
+1. First assign static ip 
+2. yum install mailx postfix
+3. vim /etc/postfix/main.cf
+
+	** change these lines according to your networks or system **
+
+*myhostname
+
+myhostname = host.domain.tld
+
+	into
+
+myhostname = redhat8.server.com
+
+
+*mydomain
+
+mydomain = domain.tld
+
+	into
+
+mydomain = server.com
+
+
+*myorigin (uncomment this line)
+
+myorigin = $mydomain
+
+
+*inet_interfaces (comment this line)
+
+inet_interfaces = localhost
+
+
+*inet_interfaces (uncomment this line)
+
+inet_interfaces = all
+
+
+*mydestination (comment this line)
+
+mydestination = $myhostname, localhost.$mydomain, localhost
+
+
+*mydestination (uncomment this line)
+
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+
+*mynetworks (uncomment this line & change the value of this line)
+
+mynetworks = 202.45.15.7/28, 127.0.0.0/8
+
+	into
+
+mynetworks = 192.168.1.0/24, 127.0.0.0/8
+
+4. save & exit
+5. firewall-cmd --permanent --add-service=smtp
+6. firewall-cmd --reload
+7. systemctl enable postfix --now
+8. systemctl status postfix
+
+
+**** For sending mail ****
+
+mail <username>@<user domain>
+
+
+**** For ending the message body of mail ****
+
+1. return
+2. ctrl + d

@@ -1,0 +1,16 @@
+** To check mail que **
+
+postqueue -p
+
+** To delete particular mail from que list **
+
+postsuper -d <mail_queue_id>
+
+** To delete all mail que from list **
+
+postsuper -d ALL
+
+** To resend all mails **
+
+postqueue -f
+

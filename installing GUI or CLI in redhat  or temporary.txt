@@ -1,0 +1,45 @@
+installing GUI or CLI in redhat  
+
+check  group list available environment groups
+
+dnf group list 
+
+
+install GUI group in system
+
+dnf groupinstall "Server with GUI"
+or
+yum groupinstall "Server with GUI"
+
+for checking default mode in system
+systemctl get-default 
+
+now set  mode graphical 
+systemctl set-default graphical.target 
+
+for temporary mode gui
+systemctl isolate graphical.target 
+
+install CLI group system
+
+dnf groupinstall "Server with CLI"
+or
+yum groupinstall "Server with CLI"
+
+for checking default mode in system
+systemctl get-default 
+
+now set  mode cli 
+systemctl set-default graphical.target 
+
+for temporary mode cli
+systemctl isolate multi-user.target 
+
+
+for start gui 
+
+systemctl start gdm.service ---
+systemctl enable gdm.service --- 
+
+--now -->if option add then it start on boot 
+---  ---> it means then it permanently 

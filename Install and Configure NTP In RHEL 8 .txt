@@ -1,0 +1,41 @@
+**** on server side ****
+
+1. yum install chronyd
+2. systemctl enabled chronyd
+3. systemctl start chronyd
+4. systemctl status chronyd
+5. vim /etc/chrony.conf
+
+	** remove # from this line
+
+	allow 192.168.0.0/24 
+
+	change this value into <your network address>
+
+6. systemctl restart chronyd
+7. firewall-cmd --add-service=ntp --permanent
+8. firewall-cmd --reload
+
+** Check NTP clients status on server **
+
+chronyc clients
+
+
+**** on client side ****
+
+1. yum install chronyd
+2. systemctl enabled chronyd
+3. systemctl start chronyd
+4. systemctl status chronyd
+5. vim /etc/chrony.conf
+
+		** comment(#) all the server/pool lines in the file
+
+		Add this entry = server <NTP server ip>
+6. systemctl restart chronyd
+7. systemctl status chronyd
+8. chronyc sources
+
+	** if the NTP server ip shows there 
+
+	** NTP configuration is successfull

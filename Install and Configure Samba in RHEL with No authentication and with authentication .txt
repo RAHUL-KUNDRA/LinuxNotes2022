@@ -1,0 +1,104 @@
+configure samba server for everyone with no authentication
+**** on server side ****
+
+1. yum install samba*
+
+1.1 mkdir -p /srv/samba/Everyone
+1.2 chmod -R 777 /srv/samba/Everyone
+1.3 chown -R nobody:nobody /srv/samba/Everyone
+1.4 chcon -t samba_share_t /srv/samba/Everyone
+
+
+2. cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+3. vim /etc/samba/smb.conf
+
+	**types these entry in the file
+
+[global]
+	workgroup = WORKGROUP
+        server string = Samba Server %v
+        netbios name = rhel8
+        security = user
+        map to guest = bad user
+        dns proxy = no
+
+[Everyone]
+        comment = Anonymous File Server Share
+        path = /srv/samba/Everyone
+        browsable =yes
+        writable = yes
+        guest ok = yes
+        read only = no
+        force user = nobody
+        force directory mode = 2777     ---->External  if you want copy more than folder  
+        create mask =0777               ---->External for creating mask value 
+
+4. firewall-cmd --permanent --add-service=samba
+5. firewall-cmd --reload
+6. systemctl enable smb --now
+7. systemctl enable nmb --now
+8. systemctl status smb
+9. systemctl status nmb
+
+** To check samba configuration **
+
+1. testparm
+
+
+to access share directory In window
+win+R   Enter  Ip Address of server you are trying to access  \\192.168.43.121
+
+
+Configure samba server secure with user and password authentication
+
+1. yum install samba*  or sudo dnf install samba samba-common samba-client
+2. groupadd smbgrp
+3. useradd rahul
+4. usermod -aG smbgrp rahul
+	
+	or
+
+4.1 gpasswd -a rahul smbgrp
+
+5. smbpasswd -a rahul
+6. mkdir -p /srv/samba/secure         ---> createing a samba share directory 
+7. chmod -R 770 /srv/samba/secure      ---> assign permisson to directory
+8. chown -R root:smbgrp /srv/samba/secure  ---> assign ownership to directory 
+9. chcon -t samba_share_t /srv/samba/secure  ---> adding selinux content to directory 
+10. cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+11. vim /etc/samba/smb.conf
+
+	** add the following entries in the file
+
+[global]
+        workgroup = WORKGROUP
+        server string = Samba Server %v
+        netbios name = rhel8
+        security = user
+        map to guest = bad user
+        dns proxy = no
+
+[secure]
+	comment = Secure File Server Share
+	path = /srv/samba/secure
+	valid users = @smbgrp
+	guest ok = no
+	writable = yes
+	browsable = yes
+        force directory mode = 2777     ---->External  if you want copy more than folder  
+        create mask =0777               ---->External for creating mask value 
+
+12. testparm
+
+12.1 firewall-cmd --permanent --add-service=samba
+12.2 firewall-cmd --reload
+
+13. systemctl enable smb --now
+14. systemctl enable nmb --now
+15. systemctl status smb
+16. systemctl status nmb
+
+
+to access share directory In window
+win+R   Enter  Ip Address of server you are trying to access  \\192.168.43.121
+

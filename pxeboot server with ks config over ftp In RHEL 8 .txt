@@ -1,0 +1,171 @@
+1. yum install dhcp-server tftp-server syslinux vsftpd xinetd
+
+1.1 vim /etc/vsftpd/vsftpd.conf
+
+	**change this entry
+
+	anonymous_enable=NO
+
+		into 
+	
+	anonymous_enable=YES
+
+2. configure kickstart file
+
+2.1 cp /root/anaconda-ks.cfg /var/ftp/pub/ks.cfg
+2.2 chmod a+rx /var/ftp/pub/ks.cfg
+2.3 vim /var/ftp/pub/ks.cfg
+
+	**Add these entries in the file
+
+#version=RHEL8
+# Use graphical install
+graphical
+
+repo --name="AppStream" --baseurl=ftp://192.168.204.128/pub/local-repo/AppStream
+repo --name="BaseOS" --baseurl=ftp://192.168.204.128/pub/local-repo/BaseOS
+
+%packages
+@^graphical-server-environment
+kexec-tools
+
+%end
+
+# Keyboard layouts
+keyboard --xlayouts='us'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --hostname=localhost.localdomain
+network --bootproto=dhcp --device=ens160 --onboot=on
+
+# Use CDROM installation media
+#cdrom
+
+# Use Network installation
+url --url="ftp://192.168.204.128/pub/local-repo"
+
+# Run the Setup Agent on first boot
+firstboot --disable
+
+ignoredisk --only-use=nvme0n1
+# Partition clearing information
+clearpart --all --initlabel
+# Disk partitioning information
+part swap --fstype="swap" --ondisk=nvme0n1 --size=4031
+part /boot --fstype="xfs" --ondisk=nvme0n1 --size=1024
+part / --fstype="xfs" --ondisk=nvme0n1 --size=51200 *Note : use --grow for using all space of disk for /
+
+# System timezone
+timezone Asia/Kolkata --isUtc --nontp
+
+# Root password
+rootpw --iscrypted $6$m95OLkGPH/estCPb$4lpilZsofgwAM1JVKf5khH/KmndE/DF88fqBBdMp5QG80mTyCe.I6SkiHDjzuHQ.9a0v2iR3ElUERkdErce3l/
+user --name=test --password=$6$mL7NbGBRsy9uIJ9e$TWpUcZt/54.iJ15JFv3iAU6JBlInXB2j03quGjL7Y7LccUPq6Oz1PPddg3Dn.hn3fI6gf5pYGmoasNvvHUzhD1 --iscrypted --gecos="test"
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+# Reboot after installation
+reboot
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end
+
+
+3. vim /etc/dhcp/dhcpd.conf
+
+**add the following entries in the file
+
+allow booting;
+allow bootp;
+allow unknown-clients;
+default-lease-time 600;
+max-lease-time 7200;
+ddns-update-style none;
+authoritative;
+subnet 192.168.204.0 netmask 255.255.255.0 {
+range 192.168.204.3 192.168.204.252;
+option routers 192.168.204.1;
+option subnet-mask 255.255.255.0;
+option domain-name-servers 192.168.204.1;
+
+next-server 192.168.204.128; #DHCP server ip
+filename "pxelinux.0";
+}
+save & exit
+
+4. vim /etc/xinetd.d/tftp
+
+**add the following entries in the file
+
+service tftp
+{
+        socket_type             = dgram
+        protocol                = udp
+        wait                    = yes
+        user                    = root
+        server                  = /usr/sbin/in.tftpd
+        server_args             = -s /var/lib/tftpboot
+        disable                 = no
+        per_source              = 11
+        cps                     = 100 2
+        flags                   = IPv4
+}
+
+save & exit
+
+5. cp -v /usr/share/syslinux/* /var/lib/tftpboot
+
+6. mkdir /var/lib/tftpboot/pxelinux.cfg
+
+7. mkdir /var/lib/tftpboot/rhel8
+
+8. mount cd in /mnt
+
+9. cd /mnt 
+
+10. mkdir /var/ftp/pub/local-repo
+
+11. cp -rvf /mnt/* /var/ftp/pub/local-repo
+
+12. cp /var/ftp/pub/local-repo/images/pxeboot/vmlinuz /var/lib/tftpboot/rhel8
+
+13. cp /var/ftp/pub/local-repo/images/pxeboot/initrd.img /var/lib/tftpboot/rhel8
+
+14. createrepo -v /var/ftp/pub/local-repo
+
+15. vim /var/lib/tftpboot/pxelinux.cfg/default
+
+**add the following entries in the file
+
+default menu.c32
+prompt 0
+timeout 5
+MENU TITLE  ########## PXE Boot Menu ##########
+
+LABEL rhel7_x64
+MENU LABEL  Install rhel8 x64 with local repo
+KERNEL /rhel8/vmlinuz
+APPEND initrd=/rhel8/initrd.img inst.repo=ftp://192.168.204.128/pub/local-repo ks=ftp://192.168.204.128/pub/ks.cfg
+
+save & exit
+
+16. firewall-cmd --permanent --add-service=dhcp
+
+17. firewall-cmd --permanent --add-service=ftp
+
+18. firewall-cmd --permanent --add-service=tftp
+
+19. firewall-cmd --reload
+
+20. systemctl enable vsftpd --now
+
+21. systemctl enable dhcpd --now
+
+22. systemctl enable xinetd --now
+
+23. systemctl enable tftp --now

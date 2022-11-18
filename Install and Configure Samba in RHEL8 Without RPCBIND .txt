@@ -1,0 +1,34 @@
+** on server side **
+
+1. yum install nfs-utils
+2. sudo mkdir  /srv/nfshare
+3. vim /etc/exports
+
+	**add these entries in the file
+
+/srv/nfshare	192.168.1.0/24(rw,sync,no_root_squash)
+
+4. exportfs -arv
+5. firewall-cmd --add-service=nfs --permanent
+6. firewall-cmd --add-service=mountd --permanent
+7. firewall-cmd --add-service=rpc-bind --permanent
+8. firewall-cmd --reload 
+9. systemctl enable --now nfs-server
+10. systemctl enable --now rpcbind
+
+
+** on client side **
+
+1. yum install nfs-utils
+2. showmount -e 192.168.1.3
+3. mkdir /rec-shared
+4. mount -t nfs -o sync 192.168.1.3:/srv/nfshare /rec-shared
+5. vim /etc/fstab
+
+	** add these entries in the file
+
+192.168.1.3:/srv/nfshare	/rec-shared	nfs	sync	0 0
+
+6. mount -a
+
+

@@ -1,0 +1,8 @@
+nat probleam
+Could not activate connection:    │    │ 
+                  │ ││ Connection 'Wired connection 1:'  │    │ 
+                  │ ││ is not available on device ens160 │    │ 
+                  │ ││ because device has no carrier 
+
+for checking nmcli 
+nmcli conn show --active

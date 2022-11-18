@@ -1,0 +1,23 @@
+[root@system network-scripts]# cat ifcfg-ens33
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=none
+IPV4INIT=yes
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+IPADDR=192.168.0.40
+PREFIX=24
+GATEWAY=192.168.0.1
+DNS1=192.168.0.1
+DOMAIN=example.com
+IPV6INIT=no
+UUID=c96bc909-188e-ec64-3a96-6a90982b08ad
+
+
+
+The machine has an static IP configuracion settled in the /etc/sysconfig/network-scripts path as follows:
+

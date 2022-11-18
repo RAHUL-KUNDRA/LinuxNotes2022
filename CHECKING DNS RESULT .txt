@@ -1,0 +1,37 @@
+named-checkconf -z /etc/named.conf
+
+Output
+
+zone localhost.localdomain/IN: loaded serial 0
+zone localhost/IN: loaded serial 0
+zone 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa/IN: loaded serial 0
+zone 1.0.0.127.in-addr.arpa/IN: loaded serial 0
+zone 0.in-addr.arpa/IN: loaded serial 0
+zone server.com/IN: loaded serial 20180205
+zone 75.168.192.in-addr.arpa/IN: loaded serial 20180205
+
+named-checkzone forward /var/named/forward.server.com
+zone forward/IN: loaded serial 20180205
+OK
+
+named-checkzone reverse /var/named/reverse.server.com
+zone reverse/IN: loaded serial 20180205
+OK
+
+Another option 
+dig redhat8.server.com
+
+; <<>> DiG 9.11.26-RedHat-9.11.26-6.el8 <<>> redhat8.server.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 41067
+;; flags: qr rd ra ad; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;redhat8.server.com.		IN	A
+
+;; Query time: 330 msec
+;; SERVER: 192.168.75.2#53(192.168.75.2)
+;; WHEN: Fri Apr 01 10:03:39 PDT 2022
+;; MSG SIZE  rcvd: 36
+
